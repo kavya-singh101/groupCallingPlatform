@@ -35,16 +35,21 @@ let joinRoomInit = async () => {
     joinStream();
 }
 let joinStream = async () => {
-    localTracks = await AgoraRTC.createMicrophoneAndCameraTracks()
+    localTracks = await AgoraRTC.createMicrophoneAndCameraTracks({},{encoderConfig:{
+        width: {min: 640, ideal:1920, max: 1920},
+        height: {min: 480, ideal:720, max: 1080},
+    } })
     let player = `<div class="video__container" id="user-container-${uid}">
                         <div class="video-player" id="user-${uid}"></div> 
                     </div>` //${displayName}
     document.getElementById('streams__container').insertAdjacentHTML('beforeend', player)
 
+    document.getElementById(`user-container-${uid}`).addEventListener('click', expendVideoFrame)
+
     // localTracks[0] //audio track store here
     localTracks[1].play(`user-${uid}`) //video track store here
     // console.log("some details -->"+localTracks)
-    await client.publish([localTracks[0],localTracks[1]])
+    await client.publish([localTracks[0], localTracks[1]])
 }
 
 let handleUserPublished = async (user, mediaType) => {
@@ -53,25 +58,71 @@ let handleUserPublished = async (user, mediaType) => {
     await client.subscribe(user, mediaType)
 
     let player = document.getElementById(`user-container-${user.uid}`)
-    if(player===null){
+    if (player === null) {
         player = `<div class="video__container" id="user-container-${user.uid}">
                             <div class="video-player" id="user-${user.uid}"></div> 
                         </div>`
         document.getElementById('streams__container').insertAdjacentHTML('beforeend', player)
+        document.getElementById(`user-container-${user.uid}`).addEventListener('click', expendVideoFrame)
+
+    }
+    if (displayFrame.style.display) {
+        let videFrame=document.getElementById(`user-container-${user.uid}`)
+        videFrame.style.height = '100px'
+        videFrame.style.width = '100px'
     }
 
-    if(mediaType === 'video'){
+    if (mediaType === 'video') {
         user.videoTrack.play(`user-${user.uid}`)
     }
-    if(mediaType === 'audio'){
+    if (mediaType === 'audio') {
         user.audioTrack.play()
     }
 
 }
 
-let handleUserLeft = async (user)=>{
+let handleUserLeft = async (user) => {
     delete remoteUsers[user.uid]
     document.getElementById(`user-container-${user.uid}`).remove()
+
+    if (userIdInDisplayFrame === `user-container-${user.uid}`) {
+        displayFrame.style.display = 'none'
+        let videoFrames = document.getElementsByClassName('video__container')
+        for (let i = 0; i < videoFrames.length; i++) {
+            videoFrames[i].style.height='300px';
+            videoFrames[i].style.width='300px';
+            
+        }
+
+    }
 }
+
+let toggleCamera= async(e)=>{
+    let button=e.currentTarget;
+
+    if(localTracks[1].muted){
+        await localTracks[1].setMuted(false)
+        button.classList.add('active')
+    }
+    else{
+        await localTracks[1].setMuted(true)
+        button.classList.remove('active')
+    }
+}
+let toggleMic= async(e)=>{
+    let button=e.currentTarget;
+
+    if(localTracks[0].muted){
+        await localTracks[0].setMuted(false)
+        button.classList.add('active')
+    }
+    else{
+        await localTracks[0].setMuted(true)
+        button.classList.remove('active')
+    }
+}
+
+document.getElementById('camera-btn').addEventListener('click',toggleCamera)
+document.getElementById('mic-btn').addEventListener('click',toggleMic)
 
 joinRoomInit()
