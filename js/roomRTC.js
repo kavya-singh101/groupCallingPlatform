@@ -24,6 +24,9 @@ if (!roomId) {
 let localTracks = []
 let remoteUsers = {}
 
+let localScreenTrack;
+let sharingScreen = false;
+
 let joinRoomInit = async () => {
     // codec is an encoding method used by browser
     client = AgoraRTC.createClient({ mode: "rtc", codec: "vp8" })
@@ -50,6 +53,23 @@ let joinStream = async () => {
     localTracks[1].play(`user-${uid}`) //video track store here
     // console.log("some details -->"+localTracks)
     await client.publish([localTracks[0], localTracks[1]])
+}
+
+let switchToCamera = async () =>{
+    let player = `<div class="video__container" id="user-container-${uid}">
+                            <div class="video-player" id="user-${uid}"></div> 
+                        </div>`
+    displayFrame.insertAdjacentHTML('beforeend', player)
+
+    // await localTracks[0].setMuted(true)
+    await localTracks[1].setMuted(true)
+
+    // document.getElementById(`mic-btn`).classList.remove('active')
+    document.getElementById(`camera-btn`).classList.remove('active')
+
+    localTracks[1].play(`user-${uid}`)
+    await client.publish([localTracks[1]])
+
 }
 
 let handleUserPublished = async (user, mediaType) => {
@@ -122,7 +142,59 @@ let toggleMic= async(e)=>{
     }
 }
 
+let toggleScreen=async(e)=>{
+    let screenButton=e.currentTarget;
+    let cameraButton=document.getElementById('camera-btn');
+
+    if(!sharingScreen){
+        sharingScreen=true;
+        screenButton.classList.add('active');
+        cameraButton.classList.add('inactive');
+        cameraButton.style.display='none';
+
+        localScreenTrack=await AgoraRTC.createScreenVideoTrack();
+
+        document.getElementById(`user-container-${uid}`).remove();
+
+
+        let player = `<div class="video__container" id="user-container-${uid}">
+                            <div class="video-player" id="user-${uid}"></div> 
+                        </div>`
+        displayFrame.insertAdjacentHTML('beforeend', player)
+        document.getElementById(`user-container-${uid}`).addEventListener('click',expendVideoFrame)
+        
+        userIdInDisplayFrame=`user-container-${uid}`;
+        localScreenTrack.play(`user-${uid}`);
+
+        await client.unpublish([localTracks[1]])
+        await client.publish([localScreenTrack])
+
+        let videoFrames = document.getElementsByClassName('video__container')
+
+        for (let i = 0; i < videoFrames.length; i++) {
+            if (videoFrames[i].id != userIdInDisplayFrame) {
+              videoFrames[i].style.height = '100px';
+              videoFrames[i].style.width = '100px';
+            }
+        
+          }
+    }
+    else{
+        sharingScreen=false;
+        cameraButton.style.display='block';
+
+        document.getElementById(`screen-btn`).classList.remove('active')
+
+
+        document.getElementById(`user-container-${uid}`).remove();
+        await client.unpublish([localScreenTrack])
+
+        switchToCamera();
+    }
+}
+
 document.getElementById('camera-btn').addEventListener('click',toggleCamera)
 document.getElementById('mic-btn').addEventListener('click',toggleMic)
+document.getElementById('screen-btn').addEventListener('click',toggleScreen)
 
 joinRoomInit()
