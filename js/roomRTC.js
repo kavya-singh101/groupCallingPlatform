@@ -21,6 +21,11 @@ if (!roomId) {
     sessionStorage.setItem("roomId", roomId)
 }
 
+let displayName= sessionStorage.getItem('display_name')
+if(!displayName){
+    window.location = 'lobby.html'
+}
+
 let localTracks = []
 let remoteUsers = {}
 
