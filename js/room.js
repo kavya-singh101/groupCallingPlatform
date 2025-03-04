@@ -1,12 +1,9 @@
 let messagesContainer = document.getElementById('messages');
 messagesContainer.scrollTop = messagesContainer.scrollHeight;
-
 const memberContainer = document.getElementById('members__container');
 const memberButton = document.getElementById('members__button');
-
 const chatContainer = document.getElementById('messages__container');
 const chatButton = document.getElementById('chat__button');
-
 let activeMemberContainer = false;
 
 memberButton.addEventListener('click', () => {
@@ -18,7 +15,6 @@ memberButton.addEventListener('click', () => {
 
   activeMemberContainer = !activeMemberContainer;
 });
-
 let activeChatContainer = false;
 
 chatButton.addEventListener('click', () => {
@@ -49,14 +45,12 @@ let expendVideoFrame = (e) => {
       videoFrames[i].style.height = '100px';
       videoFrames[i].style.width = '100px';
     }
-
   }
 
 }
 
 for (let i = 0; videoFrames.length > i; i++) {
   videoFrames[i].addEventListener('click', expendVideoFrame);
-
 }
 
 let hideDisplayFrame = () => {
@@ -67,9 +61,7 @@ let hideDisplayFrame = () => {
   for (let i = 0; i < videoFrames.length; i++) {
     videoFrames[i].style.height = '300px';
     videoFrames[i].style.width = '300px';
-
   }
-
 }
 
 displayFrame.addEventListener('click',hideDisplayFrame)
