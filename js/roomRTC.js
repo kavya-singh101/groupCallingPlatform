@@ -19,7 +19,7 @@ if (!roomId) {
     sessionStorage.setItem("roomId", roomId)
 }
 
-let displayName= sessionStorage.getItem('display_name')
+let displayName= localStorage.getItem('display_name')
 if(!displayName){
     window.location = 'lobby.html'
 }
